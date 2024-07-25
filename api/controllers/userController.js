@@ -59,9 +59,28 @@ const getAdmin = async (req, res) => {
   }
 };
 
+// make admin
+const makeAdmin = async (req, res) => {
+  const userId = req.params.id;
+  const { name, email, photoURL, role } = req.body;
+  try {
+    const updateUser = await User.findByIdAndUpdate(
+      userId,
+      { role: "admin" },
+      { new: true, runValidators: true }
+    );
+    if (!updateUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(updateUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 module.exports = {
   getAllUsers,
   createUser,
   deleteUser,
   getAdmin,
+  makeAdmin,
 };
