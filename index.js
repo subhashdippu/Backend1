@@ -2,8 +2,9 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const PORT = process.env.PORT || 3000;
-const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
+// import verifyToken from "./api/middleware/verifyToken";
 require("dotenv").config();
 
 // middleware
@@ -30,8 +31,27 @@ app.post("/jwt", async (req, res) => {
   });
   res.send({ token });
 });
+
 const userRoutes = require("./api/router/userRoutes");
 app.use("/users", userRoutes);
+
+const verifyToken = (res, req, next) => {
+  if (!req.headers.authorization) {
+    res.status(401).json({ message: "unotherised access" });
+  }
+  const token = req.headers.authorization.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "token is invalid" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+};
+
+app.get("/", verifyToken, (req, res) => {
+  res.send("Hello World!");
+});
 
 // console.log("register log", app._router.stack)
 app.listen(PORT, () => {
